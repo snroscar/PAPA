@@ -1,7 +1,8 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Sky, Sparkles, Stars, Float } from "@react-three/drei";
+import { Sky, Sparkles, Stars, Float, useGLTF } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
+import armoredManGlb from "@/assets/image_3_Man_in_ornate_armor_holding_a_shield_Prism_31_3f68de12.glb?url";
 import { useGame } from "@/store/gameStore";
 import type { Chapter } from "@/data/chapters";
 import { nextDynamicRescueLine, nextEncouragement, primeAiLines, chapterFourCagedTestimony } from "@/lib/dialogue";
@@ -28,6 +29,37 @@ interface Controls {
   slide: () => void;
 }
 
+/* ---------------- GLB Character Model Loader ---------------- */
+function GLBCharacter() {
+  const gltf = useGLTF(armoredManGlb);
+  const modelRef = useRef<THREE.Group>(null);
+  const animationMixer = useRef<THREE.AnimationMixer | null>(null);
+
+  useEffect(() => {
+    if (modelRef.current && gltf.animations.length > 0) {
+      animationMixer.current = new THREE.AnimationMixer(modelRef.current);
+      // Play first animation if available
+      const action = animationMixer.current.clipAction(gltf.animations[0]);
+      action.play();
+    }
+  }, [gltf]);
+
+  useFrame((_, dt) => {
+    if (animationMixer.current) {
+      animationMixer.current.update(dt);
+    }
+  });
+
+  return (
+    <primitive
+      ref={modelRef}
+      object={gltf.scene}
+      scale={[1, 1, 1]}
+      position={[0, -0.5, 0]}
+    />
+  );
+}
+
 /* ---------------- Player ---------------- */
 function Player({
   chapter,
@@ -40,10 +72,6 @@ function Player({
 }) {
   const group = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
-  const armL = useRef<THREE.Group>(null);
-  const armR = useRef<THREE.Group>(null);
-  const legL = useRef<THREE.Group>(null);
-  const legR = useRef<THREE.Group>(null);
   const lane = useRef(1);
   const y = useRef(0);
   const vy = useRef(0);
@@ -90,16 +118,9 @@ function Player({
       const t = performance.now() / 1000;
       if (body.current) {
         const bob = Math.abs(Math.sin(t * 12)) * 0.08;
-        body.current.position.y = sliding.current ? -0.35 : bob;
-        body.current.scale.y = sliding.current ? 0.55 : 1;
+        body.current.position.y = bob;
         body.current.rotation.z = (targetX - group.current.position.x) * 0.12;
       }
-      // limb running animation
-      const swing = Math.sin(t * 12) * (y.current > 0.1 ? 0.4 : 1);
-      if (armL.current) armL.current.rotation.x = swing * 1.1;
-      if (armR.current) armR.current.rotation.x = -swing * 1.1;
-      if (legL.current) legL.current.rotation.x = -swing * 0.9;
-      if (legR.current) legR.current.rotation.x = swing * 0.9;
     }
     if (invuln.current > 0) invuln.current -= d;
   });
@@ -158,19 +179,10 @@ function Player({
     };
   }, [loseLife, rescueSoul, collect, activateCompanion]);
 
-  const robeColor = chapter.id === 3 ? "#7a2f22" : "#8a2b22";
-
   return (
     <group ref={group} position={[LANES[1], 0, PLAYER_Z]}>
       <group ref={body}>
-        <CartoonHero
-          robeColor={robeColor}
-          accent={chapter.accent}
-          armL={armL}
-          armR={armR}
-          legL={legL}
-          legR={legR}
-        />
+        <GLBCharacter />
         <pointLight position={[0, 1.7, 0]} intensity={1.6} distance={4} color={chapter.accent} />
       </group>
       {companion && (
