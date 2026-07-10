@@ -9,6 +9,12 @@ import { stopMusic } from "@/lib/music";
 
 const CONFETTI_COLORS = ["#ffd27a", "#ff8a5c", "#fff0b0", "#b5486a", "#cfe3ff", "#ffe9a8"];
 
+const highlightImages = import.meta.glob("../../assets/{c*,d*}.{png,jpg,jpeg}", { eager: true }) as Record<string, { default: string }>;
+const highlightPhotos = Object.entries(highlightImages)
+  .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+  .map(([, module]) => module.default);
+const CELEBRATION_RUNTIME_MS = 600_000;
+
 function Confetti() {
   const pieces = useMemo(
     () =>
@@ -50,7 +56,12 @@ export default function Celebration() {
   const [muted, setMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const photos = assets.galleryPhotos.length ? assets.galleryPhotos : [heroImg, gateImg];
+  const photos =
+    assets.galleryPhotos.length || highlightPhotos.length
+      ? assets.galleryPhotos.length
+        ? assets.galleryPhotos
+        : highlightPhotos
+      : [heroImg, gateImg];
   const [slide, setSlide] = useState(0);
 
   // Stop chapter music and play birthday song
@@ -59,7 +70,8 @@ export default function Celebration() {
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % photos.length), 3500);
+    const interval = 3_000;
+    const t = setInterval(() => setSlide((s) => (s + 1) % photos.length), interval);
     return () => clearInterval(t);
   }, [photos.length]);
 
@@ -79,7 +91,7 @@ export default function Celebration() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="font-display text-sm uppercase tracking-[0.5em] text-accent"
+          className="font-display text-sm uppercase tracking-[0.6em] text-neon"
         >
           The Promise Fulfilled
         </motion.p>
@@ -87,8 +99,7 @@ export default function Celebration() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", duration: 1.2 }}
-          className="mt-3 font-display text-5xl font-extrabold text-primary-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.5)] md:text-8xl"
-          style={{ color: "#6b3f10" }}
+          className="mt-3 font-display text-5xl font-extrabold text-gold-gradient drop-shadow-[0_4px_20px_rgba(255,255,255,0.5)] md:text-8xl"
         >
           HAPPY BIRTHDAY
         </motion.h1>
@@ -96,14 +107,12 @@ export default function Celebration() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-3 font-display text-2xl font-semibold md:text-4xl"
-          style={{ color: "#8a5a1a" }}
+          className="mt-3 font-display text-2xl font-semibold text-white md:text-4xl"
         >
           {assets.pastorName}
         </motion.p>
 
-        {/* gallery */}
-        <div className="relative mt-10 aspect-video w-full max-w-3xl overflow-hidden rounded-3xl border-4 border-white/70 shadow-deep">
+        <div className="relative mt-10 aspect-video w-full max-w-3xl overflow-hidden rounded-[2rem] border border-primary/25 bg-card/20 shadow-deep backdrop-blur-xl">
           <AnimatePresence mode="wait">
             <motion.img
               key={slide}
@@ -111,7 +120,8 @@ export default function Celebration() {
               initial={{ opacity: 0, scale: 1.08 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
+              transition={{ duration: 0.6 }}
+              style={{ objectPosition: "center middle" }}
               className="h-full w-full object-cover"
               alt="A cherished memory"
             />
@@ -120,7 +130,7 @@ export default function Celebration() {
             {photos.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${i === slide ? "w-6 bg-white" : "w-1.5 bg-white/50"}`}
+                className={`h-1.5 rounded-full transition-all ${i === slide ? "w-6 bg-primary" : "w-1.5 bg-white/50"}`}
               />
             ))}
           </div>
@@ -129,54 +139,52 @@ export default function Celebration() {
         <motion.h2
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="mt-12 font-display text-3xl font-bold md:text-5xl"
-          style={{ color: "#6b3f10" }}
+          className="mt-12 font-display text-3xl font-bold text-white md:text-5xl"
         >
           Thank You, General
         </motion.h2>
-        <p
-          className="mt-4 max-w-2xl font-body text-xl italic md:text-2xl"
-          style={{ color: "#5a4020" }}
-        >
+        <p className="mt-4 max-w-2xl font-body text-xl italic text-muted-foreground md:text-2xl">
           {assets.dedication}
         </p>
 
-        <div className="mt-10 flex gap-8 font-display" style={{ color: "#6b3f10" }}>
-          <div>
-            <p className="text-4xl font-bold">{(totalSoulsSaved ? totalSoulsSaved * 10 : soulsRescued * 10000).toLocaleString()}</p>
-            <p className="text-xs uppercase tracking-widest">Souls Won for God</p>
-          </div>
-          <div>
-            <p className="text-4xl font-bold">{kingdomImpact.toLocaleString()}</p>
-            <p className="text-xs uppercase tracking-widest">Kingdom Impact</p>
-          </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <StatBlock label="Souls Won for God" value={(totalSoulsSaved ? totalSoulsSaved * 10 : soulsRescued * 10000).toLocaleString()} />
+          <StatBlock label="Kingdom Impact" value={kingdomImpact.toLocaleString()} />
         </div>
 
-        {/* credits */}
-        <div className="mt-14 max-w-md text-sm leading-relaxed" style={{ color: "#6b3f10" }}>
-          <p className="font-display uppercase tracking-[0.3em]">A Tribute</p>
-          <p className="mt-2 italic">
+        <div className="mt-14 max-w-md rounded-[1.75rem] border border-primary/20 bg-glass p-6 text-left shadow-deep">
+          <p className="font-display uppercase tracking-[0.3em] text-neon">A Tribute</p>
+          <p className="mt-3 italic text-sm leading-relaxed text-muted-foreground">
             To a faithful servant of God, whose journey has inspired generations.
             {assets.wifeName ? ` Beside him, ${assets.wifeName}, his gift from God.` : ""}
           </p>
-          <p className="mt-3">{assets.churchName}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{assets.churchName}</p>
         </div>
 
-        <div className="mt-10 flex gap-3">
+        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
           <button
             onClick={resetJourney}
-            className="flex items-center gap-2 rounded-full bg-[#6b3f10] px-6 py-3 font-display text-sm uppercase tracking-widest text-white transition hover:scale-105"
+            className="flex items-center gap-2 rounded-full bg-gradient-gold px-6 py-3 font-display text-sm uppercase tracking-widest text-primary-foreground shadow-gold transition hover:scale-[1.02]"
           >
             <RotateCcw className="h-4 w-4" /> Journey Again
           </button>
           <button
             onClick={() => setMuted((m) => !m)}
-            className="rounded-full border-2 border-[#6b3f10]/50 p-3 text-[#6b3f10] transition hover:bg-[#6b3f10]/10"
+            className="rounded-full border border-primary/35 bg-glass px-3 py-3 text-primary transition hover:bg-primary/10"
           >
             {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[1.75rem] border border-primary/20 bg-glass p-5 text-left">
+      <p className="text-sm uppercase tracking-[0.35em] text-neon">{label}</p>
+      <p className="mt-3 text-4xl font-display font-bold text-white">{value}</p>
     </div>
   );
 }

@@ -41,8 +41,8 @@ function AdminPage() {
   if (!authenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gradient-heaven px-4 py-6 sm:px-6">
-        <div className="w-full max-w-sm rounded-2xl sm:rounded-3xl border border-primary/30 bg-card/70 p-6 sm:p-8 text-center shadow-deep backdrop-blur-xl">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary mb-3 sm:mb-6">Admin Access</h1>
+        <div className="w-full max-w-sm rounded-[2rem] border border-primary/30 bg-glass p-6 sm:p-8 text-center shadow-deep">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-gold-gradient mb-3 sm:mb-6">Admin Access</h1>
           <p className="font-body text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8">Who are you?</p>
           <input
             type="password"
@@ -114,10 +114,12 @@ function AdminStudio() {
             <ArrowLeft className="h-3.5 w-3.5" /> Back to game
           </Link>
           <div>
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-gold-gradient">Admin Studio</h1>
-            <p className="mt-2 font-body text-sm sm:text-base md:text-lg text-muted-foreground">
-              Upload photos, music and details. The game uses them automatically — no code needed.
-            </p>
+            <div className="rounded-[2rem] border border-primary/30 bg-glass p-6 shadow-deep backdrop-blur-xl">
+              <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-gold-gradient">Admin Studio</h1>
+              <p className="mt-2 font-body text-sm sm:text-base md:text-lg text-muted-foreground">
+                Upload photos, music and details. The game uses them automatically — no code needed.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -210,7 +212,7 @@ function AdminStudio() {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="mb-4 sm:mb-6 rounded-lg sm:rounded-2xl border border-border/60 bg-card/60 p-4 sm:p-6 backdrop-blur-md">
+    <div className="mb-4 sm:mb-6 rounded-[1.75rem] border border-primary/25 bg-glass p-4 sm:p-6 shadow-deep backdrop-blur-xl">
       <h2 className="mb-3 sm:mb-4 flex items-center gap-2 font-display text-base sm:text-lg md:text-xl font-semibold text-foreground">
         <span className="text-primary text-lg sm:text-xl">{icon}</span> {title}
       </h2>
@@ -244,7 +246,7 @@ function MediaRow({
   onClear: () => void; children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 rounded-lg sm:rounded-xl border border-border/50 bg-background/30 p-3 sm:p-3">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 rounded-[1.5rem] border border-primary/20 bg-glass p-3 sm:p-3 backdrop-blur-xl">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         {preview && type === "image" && (
           <img src={preview} alt="" className="h-10 sm:h-12 w-10 sm:w-12 rounded-lg object-cover flex-shrink-0" />

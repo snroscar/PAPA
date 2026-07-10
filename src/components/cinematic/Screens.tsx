@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { useGame } from "@/store/gameStore";
 import { CHAPTERS } from "@/data/chapters";
 import { nextTestimony } from "@/lib/dialogue";
@@ -19,7 +19,7 @@ export function ChapterComplete() {
   const finalCard = useGame((s) => s.finalCard);
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center bg-black px-6">
+    <div className="relative flex h-full w-full items-center justify-center bg-gradient-dawn px-6 text-white">
       {finalCard && chapter.id === 5 && (
         <video
           src={bgVideo}
@@ -34,39 +34,39 @@ export function ChapterComplete() {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 w-full max-w-lg rounded-3xl border border-primary/30 bg-card/70 p-8 text-center shadow-deep backdrop-blur-xl"
+        className="relative z-10 w-full max-w-lg rounded-[2rem] border border-primary/25 bg-glass p-8 text-center shadow-deep backdrop-blur-xl"
       >
         <motion.div
           initial={{ scale: 0, rotate: -30 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", delay: 0.2 }}
-          className="mx-auto mb-4 text-7xl"
+          className="mx-auto mb-4 rounded-full border border-primary/30 bg-background/70 p-4 text-6xl shadow-gold"
         >
           {chapter.crownIcon}
         </motion.div>
 
-        <p className="font-display text-xs uppercase tracking-[0.4em] text-primary/80">
+        <p className="font-display text-xs uppercase tracking-[0.55em] text-neon">
           {finalCard && chapter.id === 5 ? "The Testimonies" : "Chapter Complete"}
         </p>
 
-        <h2 className="mt-2 font-display text-3xl font-bold text-gold-gradient">
+        <h2 className="mt-2 font-display text-3xl font-bold text-gold-gradient md:text-4xl">
           {finalCard && chapter.id === 5 ? finalCard.title : chapter.crown}
         </h2>
 
         {finalCard && chapter.id === 5 ? (
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-3 rounded-3xl border border-white/10 bg-background/30 p-5 text-left">
             {finalCard.lines.map((l, i) => (
-              <p key={i} className="font-body text-md italic text-muted-foreground">“{l}”</p>
+              <p key={i} className="font-body text-base italic text-muted-foreground">“{l}”</p>
             ))}
             {finalCard.footer && (
-              <p className="mt-2 text-sm uppercase tracking-widest text-primary/80">{finalCard.footer}</p>
+              <p className="mt-3 text-sm uppercase tracking-widest text-primary/80">{finalCard.footer}</p>
             )}
           </div>
         ) : (
           <p className="mt-4 font-body text-lg italic text-muted-foreground">"{testimony}"</p>
         )}
 
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
           {chapter.id === 5 ? (
             <>
               <Stat label="Souls Won for God" value={runSouls * 10000} />
@@ -103,14 +103,12 @@ export function GameOver() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-3xl border border-border/60 bg-card/70 p-8 text-center shadow-deep backdrop-blur-xl"
+        className="w-full max-w-md rounded-[2rem] border border-primary/25 bg-glass p-8 text-center shadow-deep backdrop-blur-xl"
       >
-        <p className="font-display text-xs uppercase tracking-[0.4em] text-accent">
+        <p className="font-display text-xs uppercase tracking-[0.55em] text-neon">
           The journey pauses
         </p>
-        <h2 className="mt-3 font-display text-3xl font-bold text-foreground">
-          Rise and run again
-        </h2>
+        <h2 className="mt-3 font-display text-3xl font-bold text-white">Rise and run again</h2>
         <p className="mt-4 font-body text-lg italic text-muted-foreground">
           "Though he fall, he shall not be utterly cast down: for the Lord upholdeth him with his hand."
         </p>
@@ -123,7 +121,7 @@ export function GameOver() {
           </button>
           <button
             onClick={() => openChapters()}
-            className="w-full rounded-full border border-border px-6 py-3 font-display text-sm uppercase tracking-widest text-foreground transition hover:bg-secondary"
+            className="w-full rounded-full border border-primary/30 bg-background/70 px-6 py-3 font-display text-sm uppercase tracking-widest text-foreground transition hover:bg-background"
           >
             Choose Chapter
           </button>
@@ -141,9 +139,9 @@ export function GameOver() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-background/40 p-4">
-      <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="font-display text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+    <div className="rounded-[1.75rem] border border-primary/25 bg-background/30 p-5 text-left">
+      <p className="text-[10px] uppercase tracking-widest text-neon">{label}</p>
+      <p className="mt-3 font-display text-2xl font-bold text-white">{value.toLocaleString()}</p>
     </div>
   );
 }

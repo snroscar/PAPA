@@ -15,19 +15,20 @@ import joystickFavicon from "../assets/joystick.png";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="flex min-h-screen items-center justify-center bg-gradient-dawn px-4">
+      <div className="w-full max-w-md rounded-[2rem] border border-primary/25 bg-glass p-8 text-center shadow-deep backdrop-blur-xl">
+        <p className="font-display text-sm uppercase tracking-[0.6em] text-neon">Lost in the map</p>
+        <h1 className="mt-4 text-[5rem] font-black tracking-tight text-gold-gradient">404</h1>
+        <h2 className="mt-4 text-2xl font-semibold text-foreground">Page not found</h2>
+        <p className="mt-3 text-sm text-muted-foreground">
+          The destination is offline. Return to the command hub and continue the journey.
         </p>
-        <div className="mt-6">
+        <div className="mt-8">
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-gold px-6 py-3 text-sm font-semibold uppercase tracking-widest text-primary-foreground shadow-gold transition hover:scale-[1.02]"
           >
-            Go home
+            Return home
           </Link>
         </div>
       </div>
@@ -43,27 +44,26 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+    <div className="flex min-h-screen items-center justify-center bg-gradient-dawn px-4">
+      <div className="w-full max-w-md rounded-[2rem] border border-primary/25 bg-glass p-8 text-center shadow-deep backdrop-blur-xl">
+        <p className="font-display text-sm uppercase tracking-[0.55em] text-neon">System error</p>
+        <h1 className="mt-4 text-2xl font-semibold text-foreground">This page didn't load</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Something went wrong on our end. Try again or return to the main hub.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-gold px-5 py-2.5 text-sm font-semibold uppercase tracking-widest text-primary-foreground shadow-gold transition hover:scale-[1.02]"
           >
             Try again
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex items-center justify-center rounded-full border border-primary/40 bg-background/90 px-5 py-2.5 text-sm font-semibold uppercase tracking-widest text-foreground transition hover:bg-background"
           >
             Go home
           </a>
@@ -105,6 +105,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap",
       },
     ],
   }),

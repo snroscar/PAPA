@@ -12,17 +12,17 @@ export default function Chapters() {
   return (
     <div className="h-full w-full overflow-y-auto bg-gradient-dawn px-6 py-12">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-10 text-center">
+        <div className="mb-10 rounded-[2rem] border border-primary/20 bg-glass p-8 shadow-deep backdrop-blur-xl text-center">
           <button
             onClick={() => setPhase("title")}
-            className="mb-4 text-xs uppercase tracking-widest text-muted-foreground hover:text-primary"
+            className="mb-4 inline-flex text-xs uppercase tracking-[0.55em] text-neon transition hover:text-white"
           >
             ← Home
           </button>
           <h1 className="font-display text-4xl font-bold text-gold-gradient md:text-5xl">
             The Five Seasons
           </h1>
-          <p className="mt-2 font-body text-lg text-muted-foreground">
+          <p className="mt-2 font-body text-base text-muted-foreground md:text-lg">
             Each chapter opens with a cinematic, then the running mission begins.
           </p>
         </div>
@@ -39,10 +39,10 @@ export default function Chapters() {
                 transition={{ delay: i * 0.08 }}
                 disabled={!isUnlocked}
                 onClick={() => beginChapter(i)}
-                className={`group relative overflow-hidden rounded-2xl border p-6 text-left transition ${
+                className={`group relative overflow-hidden rounded-[1.75rem] border p-6 text-left transition ${
                   isUnlocked
-                    ? "border-primary/30 bg-card/60 hover:border-primary/70 hover:shadow-gold"
-                    : "cursor-not-allowed border-border/40 bg-card/30 opacity-60"
+                    ? "border-primary/25 bg-glass hover:border-primary/60 hover:shadow-gold"
+                    : "cursor-not-allowed border-border/40 bg-card/30 opacity-70"
                 } backdrop-blur-md`}
                 style={{
                   backgroundImage: `linear-gradient(120deg, ${c.skyBottom}55, transparent)`,

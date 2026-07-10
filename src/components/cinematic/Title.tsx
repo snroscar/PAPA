@@ -19,7 +19,7 @@ export default function Title() {
       <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/30 to-background" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(0,0,0,0.6))]" />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
+      <div className="relative z-10 flex h-full flex-col items-center justify-center rounded-[2rem] border border-primary/15 bg-glass/80 px-6 py-12 text-center shadow-deep backdrop-blur-2xl">
         <motion.div
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -32,7 +32,7 @@ export default function Title() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="font-display text-sm uppercase tracking-[0.5em] text-primary"
+          className="font-display text-sm uppercase tracking-[0.55em] text-neon"
         >
           A Birthday Adventure
         </motion.p>
@@ -53,7 +53,7 @@ export default function Title() {
           className="mt-6 max-w-xl font-body text-xl italic text-foreground/90 md:text-2xl"
         >
           Celebrating a life of faith, sacrifice and legacy — run through five
-          seasons of {assets.pastorName}'s calling, from his birth to his glory.
+          seasons of Apostle Prince Appau Bediako's calling, from his birth to his glory.
         </motion.p>
 
         <motion.div
@@ -64,20 +64,20 @@ export default function Title() {
         >
           <button
             onClick={startJourney}
-            className="rounded-full bg-gradient-gold px-10 py-4 font-display text-base font-semibold uppercase tracking-widest text-primary-foreground shadow-gold transition hover:scale-105"
+            className="rounded-full bg-gradient-to-r from-neon via-fuchsia-500 to-gold px-10 py-4 font-display text-base font-semibold uppercase tracking-widest text-slate-950 shadow-gold transition hover:scale-105"
           >
             Begin the Journey
           </button>
           <Link
             to="/admin"
-            className="rounded-full border border-border/70 bg-background/30 px-8 py-4 font-display text-sm uppercase tracking-widest text-foreground backdrop-blur-md transition hover:bg-background/60"
+            className="rounded-full border border-primary/30 bg-background/70 px-8 py-4 font-display text-sm uppercase tracking-widest text-neon transition hover:bg-background/90"
           >
             Admin Studio
           </Link>
         </motion.div>
 
         {(kingdomImpact > 0 || crowns.length > 0) && (
-          <p className="mt-8 text-sm uppercase tracking-widest text-muted-foreground">
+          <p className="mt-8 rounded-full border border-white/10 bg-background/60 px-5 py-3 text-sm uppercase tracking-widest text-muted-foreground shadow-gold/10">
             Kingdom Impact {kingdomImpact.toLocaleString()} · {crowns.length} / 5 Crowns
           </p>
         )}
