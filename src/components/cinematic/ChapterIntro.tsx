@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Chapter } from "@/data/chapters";
 import { narrate, stopSpeaking } from "@/lib/speech";
@@ -14,28 +14,24 @@ export default function ChapterIntro({
   const [line, setLine] = useState(-1);
   const [voice, setVoice] = useState(true);
   const [started, setStarted] = useState(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  const run = (useVoice: boolean) => {
+  const run = async (useVoice: boolean) => {
     setStarted(true);
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-    let delay = 400;
-    chapter.narration.forEach((text, i) => {
-      const est = Math.max(2600, text.length * 60);
-      timers.current.push(
-        setTimeout(() => {
-          setLine(i);
-          if (useVoice) void narrate(text);
-        }, delay),
-      );
-      delay += est;
-    });
+    setLine(-1);
+    stopSpeaking();
+
+    for (const [index, text] of chapter.narration.entries()) {
+      setLine(index);
+      if (useVoice) {
+        await narrate(text);
+      } else {
+        await new Promise((resolve) => window.setTimeout(resolve, Math.max(2200, text.length * 42)));
+      }
+    }
   };
 
   useEffect(() => {
     return () => {
-      timers.current.forEach(clearTimeout);
       stopSpeaking();
     };
   }, []);
@@ -49,14 +45,16 @@ export default function ChapterIntro({
         style={{ backgroundImage: "radial-gradient(circle at 50% 20%, rgba(255,255,255,0.5), transparent 60%)" }} />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,transparent_30%,rgba(0,0,0,0.55))]" />
 
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="font-display text-sm uppercase tracking-[0.5em] text-white/80"
-        >
-          {chapter.subtitle}
-        </motion.p>
+      <div className="relative z-10 flex h-full flex-col items-center justify-center rounded-[2rem] border border-primary/20 bg-glass px-6 py-10 text-center shadow-deep backdrop-blur-xl">
+        <div className="mb-6 rounded-[1.75rem] border border-primary/30 bg-background/70 px-6 py-4 shadow-gold">
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="font-display text-sm uppercase tracking-[0.55em] text-neon"
+          >
+            {chapter.subtitle}
+          </motion.p>
+        </div>
         <motion.h1
           initial={{ opacity: 0, y: 20, letterSpacing: "0.4em" }}
           animate={{ opacity: 1, y: 0, letterSpacing: "0.04em" }}

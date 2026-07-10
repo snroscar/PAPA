@@ -13,16 +13,23 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return preferred ?? null;
 }
 
-export function speak(text: string, opts?: { rate?: number; pitch?: number }) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  const synth = window.speechSynthesis;
-  if (!currentVoice) currentVoice = pickVoice();
-  const u = new SpeechSynthesisUtterance(text);
-  if (currentVoice) u.voice = currentVoice;
-  u.rate = opts?.rate ?? 0.9;
-  u.pitch = opts?.pitch ?? 0.95;
-  u.volume = 1;
-  synth.speak(u);
+export function speak(text: string, opts?: { rate?: number; pitch?: number }): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      resolve();
+      return;
+    }
+    const synth = window.speechSynthesis;
+    if (!currentVoice) currentVoice = pickVoice();
+    const u = new SpeechSynthesisUtterance(text);
+    if (currentVoice) u.voice = currentVoice;
+    u.rate = opts?.rate ?? 0.9;
+    u.pitch = opts?.pitch ?? 0.95;
+    u.volume = 1;
+    u.onend = () => resolve();
+    u.onerror = () => resolve();
+    synth.speak(u);
+  });
 }
 
 export function stopSpeaking() {
@@ -59,9 +66,20 @@ async function speakAI(text: string): Promise<boolean> {
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     currentAudio = audio;
-    audio.onended = () => URL.revokeObjectURL(url);
-    await audio.play();
-    return true;
+    return await new Promise((resolve) => {
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        resolve(true);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      };
+      void audio.play().catch(() => {
+        URL.revokeObjectURL(url);
+        resolve(false);
+      });
+    });
   } catch {
     return false;
   }
@@ -70,7 +88,6 @@ async function speakAI(text: string): Promise<boolean> {
 // Primary narration entry: try live OpenAI voice, otherwise Web Speech.
 export async function narrate(text: string, opts?: { rate?: number; pitch?: number }) {
   if (typeof window === "undefined") return;
-  window.speechSynthesis?.cancel();
   const ok = await speakAI(text);
-  if (!ok) speak(text, opts);
+  if (!ok) await speak(text, opts);
 }
