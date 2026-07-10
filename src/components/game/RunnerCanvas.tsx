@@ -6,7 +6,7 @@ import { useGame } from "@/store/gameStore";
 import type { Chapter } from "@/data/chapters";
 import { nextDynamicRescueLine, nextEncouragement, primeAiLines, chapterFourCagedTestimony } from "@/lib/dialogue";
 import { generateTestimonies } from "@/lib/ai.functions";
-import { startMusic, stopMusic } from "@/lib/music";
+import { startMusic, stopMusic, getSongDuration, onSongReady } from "@/lib/music";
 
 const LANES = [-2.2, 0, 2.2];
 const PLAYER_Z = 4;
@@ -32,9 +32,11 @@ interface Controls {
 function Player({
   chapter,
   controlsRef,
+  angelicMode,
 }: {
   chapter: Chapter;
   controlsRef: React.MutableRefObject<Controls | null>;
+  angelicMode: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
@@ -107,6 +109,8 @@ function Player({
     hitApi.resolve = (e: Entity, chapterId?: number) => {
       const pLane = lane.current;
       if (e.lane !== pLane) return "miss";
+      const isObstacle = ["low", "high", "full", "demon", "spike", "fire", "lava"].includes(e.kind);
+      if (angelicMode && isObstacle) return "miss";
       if (e.kind === "soul") {
         rescueSoul();
         return "hit";
@@ -173,6 +177,12 @@ function Player({
         <group position={[-1.05, 0, 0.25]}>
           <CartoonCompanion />
           <Sparkles count={14} scale={1.5} size={3} color="#ffd8ec" speed={0.4} />
+        </group>
+      )}
+      {angelicMode && (
+        <group>
+          <Sparkles count={24} scale={2.2} size={4} color="#fff6c2" speed={0.5} />
+          <pointLight position={[0, 1.8, 0]} intensity={2.4} distance={5} color="#ffe8a6" />
         </group>
       )}
     </group>
@@ -993,23 +1003,100 @@ function Ground({ chapter }: { chapter: Chapter }) {
   );
 }
 
+function FlagPole({ color, position, swayOffset }: { color: string; position: [number, number, number]; swayOffset: number }) {
+  const cloth = useRef<THREE.Mesh | null>(null);
+
+  useFrame(() => {
+    if (!cloth.current) return;
+    const t = performance.now() / 400;
+    cloth.current.rotation.z = Math.sin(t + swayOffset) * 0.22;
+    cloth.current.position.x = 0.18 + Math.sin(t * 1.7 + swayOffset) * 0.06;
+  });
+
+  return (
+    <group position={position}>
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 3, 10]} />
+        <meshStandardMaterial color="#f8f5f2" roughness={0.35} metalness={0.3} emissive="#4d4d4d" emissiveIntensity={0.08} />
+      </mesh>
+      <mesh ref={cloth} position={[0.28, 2.0, 0]} rotation={[0, 0, 0]}> 
+        <planeGeometry args={[1.2, 0.7, 6, 1]} />
+        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.25} metalness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+function LapCelebration({ visible, chapter }: { visible: boolean; chapter: Chapter }) {
+  const group = useRef<THREE.Group | null>(null);
+
+  useFrame(() => {
+    if (!visible || !group.current) return;
+    group.current.rotation.y = Math.sin(performance.now() / 900) * 0.08;
+  });
+
+  if (!visible) return null;
+
+  return (
+    <group ref={group}>
+      <pointLight position={[0, 4, 7.2]} intensity={1.3} color={chapter.accent} />
+      <group position={[0, 0, 7.5]}>
+        {[-2.4, -0.8, 0.8, 2.4].map((x, i) => (
+          <FlagPole key={i} position={[x, 0, 0]} swayOffset={i * 0.7} color={i % 2 === 0 ? chapter.accent : "#ffffff"} />
+        ))}
+      </group>
+      <Sparkles count={28} scale={[10, 4, 10]} position={[0, 2.9, 7.5]} size={3.6} color={chapter.accent} speed={0.62} opacity={0.55} />
+      <group position={[0, 1.2, 7.6]}>
+        <mesh>
+          <torusGeometry args={[1.5, 0.12, 12, 80]} />
+          <meshStandardMaterial color={chapter.accent} emissive={chapter.accent} emissiveIntensity={0.2} roughness={0.25} metalness={0.45} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 /* ---------------- World / game loop ---------------- */
 function World({ chapter }: { chapter: Chapter }) {
   const controlsRef = useRef<Controls | null>(null);
   const [entities, setEntities] = useState<Entity[]>([]);
+  const [showFinalLap, setShowFinalLap] = useState(false);
+  const [angelicMode, setAngelicMode] = useState(false);
+  const [songDuration, setSongDuration] = useState(0);
+  const finalLapToastShown = useRef(false);
+  const finalLapTriggered = useRef(false);
+  const angelicModeTimer = useRef(0);
+  const angelicModeActive = useRef(false);
   const idRef = useRef(1);
   const spawnTimer = useRef(1.2);
   const distance = useRef(0);
   const chestSpawned = useRef(false);
   const chapterCompleteQueued = useRef(false);
+  const completionTimer = useRef<number | null>(null);
   const { camera } = useThree();
 
   const setRunProgress = useGame((s) => s.setRunProgress);
   const completeChapter = useGame((s) => s.completeChapter);
   const setFinalCard = useGame((s) => s.setFinalCard);
   const phase = useGame((s) => s.phase);
+  const runProgress = useGame((s) => s.runProgress);
 
-  const goal = chapter.id === 2 ? 700 : chapter.id === 4 ? 750 : 600 + (chapter.id - 1) * 100;
+  // Register listener for song duration when chapter starts
+  useEffect(() => {
+    setSongDuration(0); // Reset
+    onSongReady((duration) => {
+      setSongDuration(duration);
+    });
+  }, [chapter.id]);
+
+  const goal = useMemo(() => {
+    if (songDuration > 0) {
+      return songDuration * chapter.speed * 0.7;
+    }
+    // fallback to original values if song duration not available
+    return chapter.id === 2 ? 700 : chapter.id === 4 ? 750 : 600 + (chapter.id - 1) * 100;
+  }, [songDuration, chapter.id, chapter.speed]);
+  const finalLapThreshold = 0.75;
 
   // keyboard + touch controls
   useEffect(() => {
@@ -1046,6 +1133,14 @@ function World({ chapter }: { chapter: Chapter }) {
       window.removeEventListener("keydown", key);
       window.removeEventListener("touchstart", ts);
       window.removeEventListener("touchend", te);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (completionTimer.current) {
+        window.clearTimeout(completionTimer.current);
+      }
     };
   }, []);
 
@@ -1104,6 +1199,27 @@ function World({ chapter }: { chapter: Chapter }) {
     camera.position.y += (3.6 - camera.position.y) * 0.05;
     camera.lookAt(0, 1.1, -6);
 
+    if (prog >= finalLapThreshold && !finalLapTriggered.current) {
+      finalLapTriggered.current = true;
+      setShowFinalLap(true);
+      window.dispatchEvent(new CustomEvent("gj-toast", { detail: "Final Lap! Flags are waving!" }));
+    }
+
+    if (prog >= finalLapThreshold && !angelicModeActive.current) {
+      angelicModeActive.current = true;
+      angelicModeTimer.current = 4;
+      setAngelicMode(true);
+      window.dispatchEvent(new CustomEvent("gj-toast", { detail: "Angelic Mode activated!" }));
+    }
+
+    if (angelicModeActive.current) {
+      angelicModeTimer.current -= d;
+      if (angelicModeTimer.current <= 0) {
+        angelicModeActive.current = false;
+        setAngelicMode(false);
+      }
+    }
+
     // companion chest for chapter 4
     if (chapter.hasCompanion && !chestSpawned.current && prog > 0.5) {
       chestSpawned.current = true;
@@ -1156,31 +1272,36 @@ function World({ chapter }: { chapter: Chapter }) {
     if (changed) setEntities((prev) => prev.filter((e) => !e.taken));
 
     if (prog >= 1) {
-      if (chapter.id === 5) {
-        if (!chapterCompleteQueued.current) {
-          chapterCompleteQueued.current = true;
-          const title = "THETESTIMONIES OF YOUR GLOBAL IMPACT GENERAL (REV. PRINCE APPAU BEDIAKO)";
+      if (!chapterCompleteQueued.current) {
+        chapterCompleteQueued.current = true;
+        setShowFinalLap(true);
+
+        if (chapter.id === 5) {
+          const title = "THE TESTIMONIES OF YOUR GLOBAL IMPACT GENERAL (REV. PRINCE APPAU BEDIAKO)";
           const footer = "THANK YOU FOR ANSWERING TO THE LORD";
           setFinalCard({ title, lines: [], footer });
-          setTimeout(() => {
+          completionTimer.current = window.setTimeout(() => {
             completeChapter(chapter.crown);
           }, 2600);
+        } else {
+          window.dispatchEvent(new CustomEvent("gj-toast", { detail: nextEncouragement() }));
+          completionTimer.current = window.setTimeout(() => {
+            completeChapter(chapter.crown);
+          }, 1800);
         }
-      } else {
-        window.dispatchEvent(new CustomEvent("gj-toast", { detail: nextEncouragement() }));
-        completeChapter(chapter.crown);
       }
     }
   });
 
   return (
     <>
-      <Player chapter={chapter} controlsRef={controlsRef} />
+      <Player chapter={chapter} controlsRef={controlsRef} angelicMode={angelicMode} />
       {entities.map((e) => (
         <EntityMesh key={e.id} e={e} accent={chapter.accent} chapterId={chapter.id} />
       ))}
       <Ground chapter={chapter} />
       <Scenery chapter={chapter} />
+      <LapCelebration visible={showFinalLap || runProgress >= finalLapThreshold} chapter={chapter} />
     </>
   );
 }

@@ -95,3 +95,27 @@ export function setMusicMuted(value: boolean) {
 export function isMusicMuted() {
   return muted;
 }
+
+export function getSongDuration(): number {
+  if (!audioElement) return 0;
+  // Check if duration is already loaded (normal case)
+  if (audioElement.duration && isFinite(audioElement.duration)) {
+    return audioElement.duration;
+  }
+  // If duration not yet loaded, return 0 to trigger fallback
+  return 0;
+}
+
+export function onSongReady(callback: (duration: number) => void) {
+  if (!audioElement) return;
+  const handleLoadedMetadata = () => {
+    if (audioElement && isFinite(audioElement.duration)) {
+      callback(audioElement.duration);
+    }
+  };
+  audioElement.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true });
+  // If metadata already loaded, call immediately
+  if (audioElement.duration && isFinite(audioElement.duration)) {
+    callback(audioElement.duration);
+  }
+}
